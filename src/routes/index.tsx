@@ -32,7 +32,7 @@ const Routes = () => {
           headerTransparent: true,
           headerTitleStyle: { color: "white" },
         }}
-        initialParams={{ favoriteNews: [] }}
+        initialParams={{ favoriteNews: []}}
       />
     </Stack.Navigator>
   );

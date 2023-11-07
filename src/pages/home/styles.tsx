@@ -28,7 +28,7 @@ const newsStyle = StyleSheet.create({
     alignItems: "center",
     borderRadius: 50,
     alignSelf: "center",
-    paddingLeft: 6,
+   
   },
   modalContainer: {
     flex: 1,

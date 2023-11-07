@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 
 import favoriteStyles from "../home/styles";
 import News from "../../types/News";
+import * as Animatable from 'react-native-animatable';
 
 interface RouteParams {
   favoriteNews: News[];
@@ -13,14 +14,16 @@ interface RouteParams {
 
 export default function FavoritesPage() {
   const route = useRoute();
-  const { favoriteNews} = route.params as RouteParams;
+  const {favoriteNews} = route.params as RouteParams;
 
   const navigation = useNavigation();
 
 
 
   const renderItem = ({ item }: { item: News }) => (
-    <View style={favoriteStyles.container}>
+    <Animatable.View    animation="zoomIn" 
+      duration={1000}
+      style={favoriteStyles.container}>
 
       <Card>
 
@@ -78,11 +81,12 @@ export default function FavoritesPage() {
           </View>
         </Card.Actions>
       </Card>
-    </View>
+    </Animatable.View>
   );
 
   return (
-    <View style={{ backgroundColor: "#30011E", height:'100%' }}>
+    <Animatable.View    animation="fadeIn" 
+      duration={1000} style={{ backgroundColor: "#30011E", height:'100%' }}>
       <View style={favoriteStyles.elements}>
         <FlatList
           data={favoriteNews}
@@ -90,6 +94,6 @@ export default function FavoritesPage() {
           keyExtractor={(_, index) => index.toString()}
         />
       </View>
-    </View>
+    </Animatable.View>
   );
 }

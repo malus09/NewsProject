@@ -1,9 +1,11 @@
+// Importações
 import React, { useState, useEffect } from "react";
 import {
   View,
   FlatList,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Linking,
 } from "react-native";
 import {
   ActivityIndicator,
@@ -11,24 +13,37 @@ import {
   Card,
   Text,
   Searchbar,
+  IconButton,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-import newsStyle from "./styles";
-import News from "../../types/News";
 import Modal from "react-native-modal";
-import { Linking } from "react-native";
+import * as Animatable from "react-native-animatable";
+
+// Estilos
+import newsStyle from "./styles";
+
+// Tipos
+import News from "../../types/News";
 
 export default function NewsPage() {
+  // Estados
   const [newsData, setNewsData] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [filteredNews, setFilteredNews] = useState<News[]>([]); // Estado para notícias filtradas
+  const [filteredNews, setFilteredNews] = useState<News[]>([]);
   const [favoriteNews, setFavoriteNews] = useState<News[]>([]);
+  const [buttonColors, setButtonColors] = useState<{
+    [key: string]: string | undefined;
+  }>({});
+  const [ModalVisible, setModalVisible] = useState(false);
+  const [NewsUrl, setNewsUrl] = useState("");
 
-  const onChangeSearch = (query) => {
+  // Navegação
+  const navigation = useNavigation();
+
+  // Funções
+  const onChangeSearch = (query: string) => {
     setSearchQuery(query);
-
-    // Filtrar notícias com base na consulta
     const filtered = newsData.filter((item) => {
       return (
         (item.title &&
@@ -36,31 +51,19 @@ export default function NewsPage() {
         (item.description &&
           item.description.toLowerCase().includes(query.toLowerCase())) ||
         (item.author && item.author.toLowerCase().includes(query.toLowerCase()))
-        // Adicione outras propriedades da notícia que deseja pesquisar
       );
     });
-
     setFilteredNews(filtered);
   };
 
-  const navigation = useNavigation();
-  const [modo, setModo] = useState("");
-  const [buttonColors, setButtonColors] = useState<{ [key: string]: string }>(
-    {}
-  );
-  const [ModalVisible, setModalVisible] = useState(false);
-  const [NewsUrl, setNewsUrl] = useState("");
-
   const handleFavorite = (item: News) => {
     const isFavorite = favoriteNews.some((n) => n.title === item.title);
-
     if (!isFavorite) {
       setFavoriteNews((prevFavorites) => [...prevFavorites, item]);
       setButtonColors((prevColors) => ({
         ...prevColors,
         [item.title]: "contained",
       }));
-      console.log("Notícias favoritadas", favoriteNews);
     } else {
       setFavoriteNews((prevFavorites) =>
         prevFavorites.filter((n) => n.title !== item.title)
@@ -69,29 +72,26 @@ export default function NewsPage() {
         ...prevColors,
         [item.title]: "contained-tonal",
       }));
-      console.log("Notícias favoritadas", favoriteNews);
     }
   };
 
-  const openModal = (url) => {
+  const openModal = (url: string) => {
     if (ModalVisible == false) {
       setModalVisible(true);
       setNewsUrl(url);
     }
   };
 
-  // Efeito para carregar as notícias da API
+  // Efeitos
   useEffect(() => {
-    // Substitua 'YOUR_API_KEY' pela sua chave de API
     const apiKey = "7dd4d824ec624d2c9a5bfb6c85a662cc";
     const apiUrl = `https://newsapi.org/v2/everything?q=tesla&from=2023-10-06&sortBy=publishedAt&apiKey=${apiKey}`;
-
     fetch(apiUrl)
       .then((response) => response.json())
       .then((data) => {
         if (data.articles) {
           setNewsData(data.articles);
-          setFilteredNews(data.articles); // Inicialmente, mostre todas as notícias
+          setFilteredNews(data.articles);
           setLoading(false);
         }
       })
@@ -101,29 +101,31 @@ export default function NewsPage() {
       });
   }, []);
 
-  // Função para renderizar cada item da lista de notícias
+  // Renderização
   const renderItem = ({ item }: { item: News }) => (
-    <View style={newsStyle.container}>
+    <Animatable.View
+      animation="fadeIn"
+      duration={1000}
+      style={newsStyle.container}
+    >
       <Modal isVisible={ModalVisible} style={{ alignSelf: "center" }}>
-        <View style={newsStyle.modalContent}>
+        <Animatable.View
+          animation="wobble"
+          duration={2000}
+          style={newsStyle.modalContent}
+        >
           <TouchableOpacity
             onPress={() => {
-              Linking.openURL(NewsUrl); // Abre a URL com Linking.openURL
+              Linking.openURL(NewsUrl);
             }}
           >
-            <Text
-              style={[
-                newsStyle.modalText,
-                { color: "blue", textAlign: "justify" },
-              ]}
-            >
+            <Text style={{ color: "blue", textAlign: "justify" }}>
               {NewsUrl}
             </Text>
           </TouchableOpacity>
           <Button onPress={() => setModalVisible(false)}>Fechar</Button>
-        </View>
+        </Animatable.View>
       </Modal>
-
       <Card style={{ backgroundColor: "#FFEBF7", padding: 4 }}>
         <TouchableOpacity
           onPress={() => navigation.navigate("DetailsPage", { news: item })}
@@ -156,27 +158,29 @@ export default function NewsPage() {
                 Ver Detalhes
               </Text>
             </Button>
-
-            <Button
-              icon="heart"
-              mode={buttonColors[item.title] || "contained"} // Use a cor do estado, padrão para "contained"
-              compact={true}
-              onPress={() => handleFavorite(item)}
-              buttonColor="#FDAFDF"
-              labelStyle={
-                buttonColors[item.title] === "contained"
-                  ? { color: "red" }
-                  : { color: "white" }
-              }
-              style={newsStyle.button}
+            <Animatable.View
+              animation={buttonColors[item.title] ? "pulse" : ""}
             >
-              <Text
-                style={{ fontSize: 12, fontWeight: "bold", paddingRight: 4 }}
+              <Button
+                icon="heart"
+                mode={buttonColors[item.title] || "contained"}
+                compact={true}
+                onPress={() => handleFavorite(item)}
+                buttonColor="#FDAFDF"
+                labelStyle={
+                  buttonColors[item.title] === "contained"
+                    ? { color: "red" }
+                    : { color: "white" }
+                }
+                style={newsStyle.button}
               >
-                Favoritar
-              </Text>
-            </Button>
-
+                <Text
+                  style={{ fontSize: 12, fontWeight: "bold", paddingRight: 4 }}
+                >
+                  Favoritar
+                </Text>
+              </Button>
+            </Animatable.View>
             <Button
               icon="share"
               mode="contained"
@@ -194,49 +198,52 @@ export default function NewsPage() {
           </View>
         </Card.Actions>
       </Card>
-    </View>
+    </Animatable.View>
   );
 
   return (
     <KeyboardAvoidingView behavior="height">
-      <View style={{ backgroundColor: "#30011E" }}>
-        {loading ? (<View style={{height:'100%', justifyContent:'center'}}>
-          <ActivityIndicator size="large" /></View>
+      <Animatable.View
+        animation="fadeIn"
+        duration={1000}
+        style={{ backgroundColor: "#30011E" }}
+      >
+        {loading ? (
+          <View style={{ height: "100%", justifyContent: "center" }}>
+            <ActivityIndicator size="large" />
+          </View>
         ) : (
           <View style={newsStyle.elements}>
-            <View
-              style={{ flexDirection: "row", width: "100%", height:70 }}
-            >
+            <View style={{ flexDirection: "row", width: "100%", height: 70 }}>
               <Searchbar
                 placeholder="Search"
                 onChangeText={onChangeSearch}
                 value={searchQuery}
                 style={{ margin: 8, width: "80%" }}
               />
-
-              <Button
+              <IconButton
                 icon="heart"
                 mode="contained"
                 style={newsStyle.favButton}
-                buttonColor="#FDAFDF"
-                compact={true}
+                containerColor="#FDAFDF"
+                iconColor="white"
                 onPress={() =>
                   navigation.navigate("FavoritesPage", {
                     favoriteNews: favoriteNews,
                   })
                 }
-                children={undefined}
               />
             </View>
-
             <FlatList
-              data={filteredNews} // Renderize as notícias filtradas
+              data={filteredNews}
               renderItem={renderItem}
               keyExtractor={(_, index) => index.toString()}
+              initialNumToRender={10}
+              windowSize={5}
             />
           </View>
         )}
-      </View>
+      </Animatable.View>
     </KeyboardAvoidingView>
   );
 }

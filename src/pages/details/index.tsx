@@ -5,6 +5,7 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 
 import detailsStyle from "./style";
 import News from "../../types/News";
+import * as Animatable from 'react-native-animatable';
 
 type RootStackParamList = {
   NewsDetail: { news: News };
@@ -19,13 +20,22 @@ export default function DetailsPage() {
   return (
     <SafeAreaView style={{ height: "100%", backgroundColor: "#FFEBF7" }}>
       <ScrollView>
-        <Image source={{ uri: news.urlToImage }} style={detailsStyle.img} />
+        <Animatable.Image
+          animation="pulse"
+          duration={1000}
+          source={{ uri: news.urlToImage }}
+          style={detailsStyle.img}
+        />
 
         <View>
           <Text style={[detailsStyle.title, { margin: 12 }]}>{news.title}</Text>
         </View>
 
-        <View style={detailsStyle.container}>
+        <Animatable.View
+          animation="fadeIn"
+          duration={1000}
+          style={detailsStyle.container}
+        >
           <View>
             <Text
               style={[
@@ -61,14 +71,16 @@ export default function DetailsPage() {
           <View>
             <Text style={detailsStyle.label}>URL para a notícia completa:</Text>
             <TouchableOpacity
-            onPress={() => {
-              Linking.openURL(news.url);
-            }}
-          >
-            <Text style={[detailsStyle.text, {color:'blue'}]}>{news.url}</Text>
+              onPress={() => {
+                Linking.openURL(news.url);
+              }}
+            >
+              <Text style={[detailsStyle.text, { color: "blue" }]}>
+                {news.url}
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animatable.View>
       </ScrollView>
     </SafeAreaView>
   );
